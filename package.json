@@ -9,7 +9,6 @@
   "version": "1.0.0",
   "main": "src/index.js",
   "bin": {
-    "@mudontire/static-site": "bin/create-project",
     "static-site": "bin/create-project"
   },
   "publishConfig": {

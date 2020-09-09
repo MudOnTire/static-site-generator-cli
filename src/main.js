@@ -1,14 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-import ncp from 'ncp';
 import chalk from 'chalk';
 import { promisify } from 'util';
 import execa from 'execa';
 import { projectInstall } from 'pkg-install';
 import Listr from 'listr';
 import download from 'download-git-repo';
-
-const access = promisify(fs.access);
 
 async function downloadTemplate(repoUrl, targetDir) {
   return new Promise((resolve, reject) => {
@@ -47,22 +44,6 @@ export async function createProject(options) {
     targetDirectory: options.projectName ?
       path.resolve(process.cwd(), options.projectName) : process.cwd(),
   };
-  console.log('options === ', options);
-
-  const currentFileUrl = import.meta.url;
-  const templateDir = path.resolve(
-    new URL(currentFileUrl).pathname,
-    '../../templates',
-    options.template.toLowerCase()
-  );
-
-  options.templateDirectory = templateDir;
-  try {
-    await access(templateDir, fs.constants.R_OK);
-  } catch (err) {
-    cosnole.error('%s Invalid template name', chalk.red.bold('ERROR'));
-    process.exit(1);
-  }
 
   const tasks = new Listr([
     {
