@@ -19,7 +19,8 @@ function parseArgumentsIntoOptions(rawArgs) {
   return {
     skipPrompts: args['--yes'] || false,
     git: args['--git'] || false,
-    template: args._[0],
+    projectName: args._[0],
+    template: args._[1],
     runInstall: args['--install'] || false,
   }
 }
@@ -29,11 +30,19 @@ async function promptForMissingOptions(options) {
   if (options.skipPrompts) {
     return {
       ...options,
+      projectName: options.projectName || 'static-site-boilerplate',
       template: options.template || defaultTemplate
     }
   }
 
   const questions = [];
+  if (!options.projectName) {
+    questions.push({
+      type: 'input',
+      name: 'projectName',
+      message: 'Please enter a project name',
+    });
+  }
   if (!options.template) {
     questions.push({
       type: 'list',
@@ -56,6 +65,7 @@ async function promptForMissingOptions(options) {
   const answers = await inquirer.prompt(questions);
   return {
     ...options,
+    projectName: options.projectName || answers.projectName,
     template: options.template || answers.template,
     git: options.git || answers.git
   }

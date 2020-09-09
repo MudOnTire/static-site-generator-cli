@@ -4,7 +4,6 @@ import ncp from 'ncp';
 import chalk from 'chalk';
 import { promisify } from 'util';
 import execa from 'execa';
-import listr from 'listr';
 import { projectInstall } from 'pkg-install';
 import Listr from 'listr';
 
@@ -30,8 +29,10 @@ async function initGit(options) {
 export async function createProject(options) {
   options = {
     ...options,
-    targetDirectory: options.targetDirectory || process.cwd(),
+    targetDirectory: options.projectName ?
+      path.resolve(process.cwd(), options.projectName) : process.cwd(),
   };
+  console.log('options === ', options);
 
   const currentFileUrl = import.meta.url;
   const templateDir = path.resolve(
