@@ -1,7 +1,5 @@
-import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
-import { promisify } from 'util';
 import execa from 'execa';
 import { projectInstall } from 'pkg-install';
 import Listr from 'listr';
