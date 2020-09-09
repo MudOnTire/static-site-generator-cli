@@ -1,0 +1,24 @@
+{
+  "name": "static-site-generator-cli",
+  "desc": "A CLI to bootstrap a multipage static site",
+  "keywords": [
+    "cli",
+    "multipage",
+    "static site"
+  ],
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "bin": {
+    "@mudontire/static-site": "bin/create-project",
+    "static-site": "bin/create-project"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": "git@github.com:MudOnTire/static-site-generator-cli.git",
+  "author": "MudOnTire",
+  "license": "MIT",
+  "dependencies": {
+    "esm": "^3.2.25"
+  }
+}
