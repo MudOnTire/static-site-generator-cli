@@ -6,38 +6,29 @@ import { promisify } from 'util';
 import execa from 'execa';
 import { projectInstall } from 'pkg-install';
 import Listr from 'listr';
-import downloadGit from 'download-git-repo';
+import download from 'download-git-repo';
 
 const access = promisify(fs.access);
-const copy = promisify(ncp);
-const exists = promisify(fs.exists);
-const mkdir = promisify(fs.mkdir);
-const rmdir = promisify(fs.rmdir);
-const download = promisify(downloadGit);
+
+async function downloadTemplate(repoUrl, targetDir) {
+  return new Promise((resolve, reject) => {
+    download(repoUrl, targetDir, { clone: true }, (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+}
 
 async function loadRemoteTemplate(options) {
   const gitRepos = {
-    'javascript': 'git@github.com:MudOnTire/static-site-boilerplate.git',
-    'typescript': 'git@github.com:MudOnTire/static-site-boilerplate.git',
+    'javascript': 'direct:https://github.com/MudOnTire/static-site-boilerplate',
+    'typescript': 'direct:https://github.com/MudOnTire/static-site-boilerplate#typescript',
   }
 
   const repoUrl = gitRepos[options.template.toLowerCase()];
+  if (!repoUrl) return Promise.reject(new Error(`No git repository found for template ${options.template}`));
 
-  if (!repoUrl) {
-    return Promise.reject(new Error(`No git repository found for template ${options.template}`));
-  }
-
-  // 用于存放git template的临时文件夹
-  const gitTempDir = path.resolve(process.cwd(), `git-temp-${+new Date()}`);
-  if (!await exists(gitTempDir)) await mkdir(gitTempDir);
-
-  try {
-    download(repoUrl, gitTempDir);
-    await copy(gitTempDir, options.targetDirectory, { clobber: false });
-    await rmdir(gitTempDir, { recursive: true });
-  } catch (err) {
-    return Promise.reject(new Error(`Failed to clone template from git repository ${repoUrl}`));
-  }
+  await downloadTemplate(repoUrl, options.targetDirectory);
 }
 
 async function initGit(options) {
