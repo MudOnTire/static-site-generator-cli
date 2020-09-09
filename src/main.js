@@ -9,11 +9,36 @@ import Listr from 'listr';
 
 const access = promisify(fs.access);
 const copy = promisify(ncp);
+const exists = promisify(fs.exists);
+const mkdir = promisify(fs.mkdir);
+const rmdir = promisify(fs.rmdir);
 
 async function copyTemplateFiles(options) {
-  return copy(options.templateDirectory, options.targetDirectory, {
-    clobber: false
+  const gitRepos = {
+    'javascript': 'git@github.com:MudOnTire/static-site-boilerplate.git',
+    'typescript': 'git@github.com:MudOnTire/static-site-boilerplate.git',
+  }
+
+  const repoUrl = gitRepos[options.template.toLowerCase()];
+
+  if (!repoUrl) {
+    return Promise.reject(new Error(`No git repository found for template ${options.template}`));
+  }
+
+  // 用于存放git template的临时文件夹
+  const gitTempDir = path.resolve(process.cwd(), `git-temp-${+new Date()}`);
+  if (!await exists(gitTempDir)) await mkdir(gitTempDir);
+
+  const result = await execa('git', ['clone', repoUrl], {
+    cwd: gitTempDir
   });
+
+  if (result.failed) {
+    return Promise.reject(new Error(`Failed to clone template from git repository ${repoUrl}`));
+  } else {
+    await copy(gitTempDir, options.targetDirectory, { clobber: false });
+    await rmdir(gitTempDir, { recursive: true });
+  }
 }
 
 async function initGit(options) {
