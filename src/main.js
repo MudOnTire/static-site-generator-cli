@@ -6,14 +6,16 @@ import { promisify } from 'util';
 import execa from 'execa';
 import { projectInstall } from 'pkg-install';
 import Listr from 'listr';
+import downloadGit from 'download-git-repo';
 
 const access = promisify(fs.access);
 const copy = promisify(ncp);
 const exists = promisify(fs.exists);
 const mkdir = promisify(fs.mkdir);
 const rmdir = promisify(fs.rmdir);
+const download = promisify(downloadGit);
 
-async function copyTemplateFiles(options) {
+async function loadRemoteTemplate(options) {
   const gitRepos = {
     'javascript': 'git@github.com:MudOnTire/static-site-boilerplate.git',
     'typescript': 'git@github.com:MudOnTire/static-site-boilerplate.git',
@@ -29,15 +31,12 @@ async function copyTemplateFiles(options) {
   const gitTempDir = path.resolve(process.cwd(), `git-temp-${+new Date()}`);
   if (!await exists(gitTempDir)) await mkdir(gitTempDir);
 
-  const result = await execa('git', ['clone', repoUrl], {
-    cwd: gitTempDir
-  });
-
-  if (result.failed) {
-    return Promise.reject(new Error(`Failed to clone template from git repository ${repoUrl}`));
-  } else {
+  try {
+    download(repoUrl, gitTempDir);
     await copy(gitTempDir, options.targetDirectory, { clobber: false });
     await rmdir(gitTempDir, { recursive: true });
+  } catch (err) {
+    return Promise.reject(new Error(`Failed to clone template from git repository ${repoUrl}`));
   }
 }
 
@@ -77,7 +76,7 @@ export async function createProject(options) {
   const tasks = new Listr([
     {
       title: 'Copy project files',
-      task: () => copyTemplateFiles(options)
+      task: () => loadRemoteTemplate(options)
     },
     {
       title: 'Initialize git',
